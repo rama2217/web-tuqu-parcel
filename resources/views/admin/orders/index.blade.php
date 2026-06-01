@@ -148,8 +148,42 @@
     </div>
 
     @if($orders->hasPages())
-    <div style="padding:16px;border-top:1px solid #E0D9D0;">
-      {{ $orders->links() }}
+    <div style="padding:16px;border-top:1px solid #E0D9D0;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+      {{-- Info --}}
+      <span style="font-size:0.8rem;color:#6B6560;">
+        Menampilkan {{ $orders->firstItem() }}–{{ $orders->lastItem() }} dari {{ $orders->total() }} pesanan
+      </span>
+      {{-- Tombol --}}
+      <div style="display:flex;gap:4px;align-items:center;">
+        {{-- Prev --}}
+        @if($orders->onFirstPage())
+          <span style="padding:6px 12px;border:1px solid #E0D9D0;border-radius:6px;font-size:0.8rem;color:#C0BBB5;cursor:not-allowed;">‹</span>
+        @else
+          <a href="{{ $orders->previousPageUrl() }}"
+            style="padding:6px 12px;border:1px solid #E0D9D0;border-radius:6px;font-size:0.8rem;color:#4A4A4A;text-decoration:none;transition:background 0.15s;"
+            onmouseover="this.style.background='#F7F3EE'" onmouseout="this.style.background='white'">‹</a>
+        @endif
+
+        {{-- Nomor halaman --}}
+        @foreach($orders->getUrlRange(1, $orders->lastPage()) as $page => $url)
+          @if($page == $orders->currentPage())
+            <span style="padding:6px 12px;border:1px solid #2D4A3E;border-radius:6px;font-size:0.8rem;font-weight:700;background:#2D4A3E;color:white;">{{ $page }}</span>
+          @else
+            <a href="{{ $url }}"
+              style="padding:6px 12px;border:1px solid #E0D9D0;border-radius:6px;font-size:0.8rem;color:#4A4A4A;text-decoration:none;transition:background 0.15s;"
+              onmouseover="this.style.background='#F7F3EE'" onmouseout="this.style.background='white'">{{ $page }}</a>
+          @endif
+        @endforeach
+
+        {{-- Next --}}
+        @if($orders->hasMorePages())
+          <a href="{{ $orders->nextPageUrl() }}"
+            style="padding:6px 12px;border:1px solid #E0D9D0;border-radius:6px;font-size:0.8rem;color:#4A4A4A;text-decoration:none;transition:background 0.15s;"
+            onmouseover="this.style.background='#F7F3EE'" onmouseout="this.style.background='white'">›</a>
+        @else
+          <span style="padding:6px 12px;border:1px solid #E0D9D0;border-radius:6px;font-size:0.8rem;color:#C0BBB5;cursor:not-allowed;">›</span>
+        @endif
+      </div>
     </div>
     @endif
   </div>
