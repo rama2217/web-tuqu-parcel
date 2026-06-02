@@ -30,8 +30,14 @@ class SettingController extends Controller
             'why_card2_title', 'why_card2_desc',
             'why_card3_title', 'why_card3_desc',
             'admin_email',
+            // Bank 1 – BCA (atau bank apapun)
             'bank_name_1', 'bank_number_1', 'bank_holder_1',
+            // Bank 2 – Mandiri
             'bank_name_2', 'bank_number_2', 'bank_holder_2',
+            // Bank 3 – Bank Jatim
+            'bank_name_3', 'bank_number_3', 'bank_holder_3',
+            // Bank 4 – opsional
+            'bank_name_4', 'bank_number_4', 'bank_holder_4',
             'admin_auto_logout', 'admin_session_timeout', 'admin_2fa', 'admin_login_notification',
         ];
 
@@ -39,7 +45,7 @@ class SettingController extends Controller
             Setting::set($key, (string) $request->input($key, ''));
         }
 
-        // Simpan label & link occasion (1-6)
+        // Simpan label & link occasion (1-12)
         for ($i = 1; $i <= 12; $i++) {
             Setting::set("occasion_{$i}_label", (string) $request->input("occasion_{$i}_label", ''));
             Setting::set("occasion_{$i}_link",  (string) $request->input("occasion_{$i}_link",  ''));
@@ -114,7 +120,6 @@ class SettingController extends Controller
                 }
                 Setting::set("team_photo_{$n}", '');
             }
-            // Simpan pengaturan zoom dan posisi foto tim
             Setting::set("team_photo_{$n}_zoom",  (string) $request->input("team_photo_{$n}_zoom",  '100'));
             Setting::set("team_photo_{$n}_pos_x", (string) $request->input("team_photo_{$n}_pos_x", '50'));
             Setting::set("team_photo_{$n}_pos_y", (string) $request->input("team_photo_{$n}_pos_y", '20'));
@@ -138,7 +143,7 @@ class SettingController extends Controller
             Setting::set('hero_photo', '');
         }
 
-        // Handle upload foto occasion (1-6)
+        // Handle upload foto occasion (1-12)
         for ($i = 1; $i <= 12; $i++) {
             if ($request->hasFile("occasion_{$i}_photo")) {
                 $request->validate(["occasion_{$i}_photo" => 'image|mimes:jpg,jpeg,png,gif,webp|max:10240']);
@@ -156,6 +161,24 @@ class SettingController extends Controller
                 }
                 Setting::set("occasion_{$i}_photo", '');
             }
+        }
+
+        // Handle upload gambar QRIS
+        if ($request->hasFile('qris_image')) {
+            $request->validate(['qris_image' => 'image|mimes:jpg,jpeg,png,gif,webp|max:5120']);
+            $oldQris = Setting::get('qris_image');
+            if ($oldQris && Storage::disk('public')->exists($oldQris)) {
+                Storage::disk('public')->delete($oldQris);
+            }
+            $path = $request->file('qris_image')->store('qris', 'public');
+            Setting::set('qris_image', $path);
+        }
+        if ($request->input('remove_qris_image')) {
+            $oldQris = Setting::get('qris_image');
+            if ($oldQris && Storage::disk('public')->exists($oldQris)) {
+                Storage::disk('public')->delete($oldQris);
+            }
+            Setting::set('qris_image', '');
         }
 
         return back()->with('success', 'Pengaturan berhasil disimpan!');

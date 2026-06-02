@@ -667,7 +667,7 @@
 
           {{-- Bank 2 --}}
           <p style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#6B6560;margin-bottom:12px;">Bank 2 (Opsional)</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:24px;">
             <div class="form-group" style="margin-bottom:0;">
               <label class="form-label">Nama Bank</label>
               <input type="text" class="form-input" name="bank_name_2" value="{{ \App\Models\Setting::get('bank_name_2') }}" placeholder="contoh: Mandiri">
@@ -680,6 +680,79 @@
               <label class="form-label">Atas Nama</label>
               <input type="text" class="form-input" name="bank_holder_2" value="{{ \App\Models\Setting::get('bank_holder_2') }}" placeholder="contoh: TuquParcel">
             </div>
+          </div>
+
+          {{-- Bank 3 --}}
+          <p style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#6B6560;margin-bottom:12px;">Bank 3 (Opsional)</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:24px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Nama Bank</label>
+              <input type="text" class="form-input" name="bank_name_3" value="{{ \App\Models\Setting::get('bank_name_3') }}" placeholder="contoh: Bank Jatim">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">No. Rekening</label>
+              <input type="text" class="form-input" name="bank_number_3" value="{{ \App\Models\Setting::get('bank_number_3') }}" placeholder="contoh: 0123456789">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Atas Nama</label>
+              <input type="text" class="form-input" name="bank_holder_3" value="{{ \App\Models\Setting::get('bank_holder_3') }}" placeholder="contoh: TuquParcel">
+            </div>
+          </div>
+
+          {{-- Bank 4 --}}
+          <p style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#6B6560;margin-bottom:12px;">Bank 4 (Opsional)</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:32px;">
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Nama Bank</label>
+              <input type="text" class="form-input" name="bank_name_4" value="{{ \App\Models\Setting::get('bank_name_4') }}" placeholder="contoh: BNI">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">No. Rekening</label>
+              <input type="text" class="form-input" name="bank_number_4" value="{{ \App\Models\Setting::get('bank_number_4') }}" placeholder="contoh: 0987654321">
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+              <label class="form-label">Atas Nama</label>
+              <input type="text" class="form-input" name="bank_holder_4" value="{{ \App\Models\Setting::get('bank_holder_4') }}" placeholder="contoh: TuquParcel">
+            </div>
+          </div>
+
+          {{-- QRIS --}}
+          <div style="border-top:1px solid var(--border);padding-top:24px;">
+            <p style="font-size:0.72rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#C9A96E;margin-bottom:6px;">QRIS</p>
+            <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Upload gambar kode QRIS. Akan ditampilkan di halaman pembayaran jika pelanggan memilih metode QRIS.</p>
+            <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+              {{-- Preview --}}
+              <div id="qris-preview"
+                onclick="document.getElementById('qris-file').click()"
+                style="width:140px;height:140px;border-radius:12px;border:2px dashed var(--border);background:#f8faf8;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;flex-shrink:0;transition:border-color 0.2s;position:relative;">
+                @if(!empty($settings['qris_image']))
+                  <img id="qris-img" src="{{ asset('storage/' . $settings['qris_image']) }}" alt="QRIS" style="width:100%;height:100%;object-fit:contain;display:block;">
+                  <button type="button" class="logo-remove-btn" id="qris-remove-btn" onclick="removeQris(event)" style="display:flex;">×</button>
+                @else
+                  <div id="qris-placeholder" style="text-align:center;color:#bbb;">
+                    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                      <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
+                      <rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/>
+                      <rect x="18" y="18" width="3" height="3"/>
+                    </svg>
+                    <div style="font-size:11px;margin-top:6px;">Upload QRIS</div>
+                  </div>
+                  <img id="qris-img" src="" alt="QRIS" style="width:100%;height:100%;object-fit:contain;display:none;">
+                  <button type="button" class="logo-remove-btn" id="qris-remove-btn" onclick="removeQris(event)">×</button>
+                @endif
+              </div>
+              {{-- Info & tombol upload --}}
+              <div>
+                <button type="button" class="btn-upload-logo" onclick="document.getElementById('qris-file').click()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+                  Upload Gambar QRIS
+                </button>
+                <div class="upload-hint" style="margin-top:6px;">JPG/PNG. Maksimal 5MB. Disarankan ukuran persegi (mis. 500×500px).</div>
+                <input type="hidden" name="remove_qris_image" id="remove-qris-flag" value="">
+              </div>
+            </div>
+            <input type="file" id="qris-file" name="qris_image" accept="image/*" style="display:none" onchange="previewQris(this)">
           </div>
         </div>
 
@@ -999,6 +1072,37 @@
     input.value = '';
     document.getElementById('remove_logo_navbar').value = '1';
   }
+
+  // === QRIS ===
+  function previewQris(input) {
+    if (!input.files || !input.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img         = document.getElementById('qris-img');
+      const placeholder = document.getElementById('qris-placeholder');
+      const removeBtn   = document.getElementById('qris-remove-btn');
+      img.src = e.target.result;
+      img.style.display = 'block';
+      if (placeholder) placeholder.style.display = 'none';
+      if (removeBtn)   removeBtn.style.display   = 'flex';
+      document.getElementById('remove-qris-flag').value = '';
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  function removeQris(e) {
+    e.stopPropagation();
+    const img         = document.getElementById('qris-img');
+    const placeholder = document.getElementById('qris-placeholder');
+    const removeBtn   = document.getElementById('qris-remove-btn');
+    const input       = document.getElementById('qris-file');
+    img.src = ''; img.style.display = 'none';
+    if (placeholder) placeholder.style.display = 'block';
+    if (removeBtn)   removeBtn.style.display   = 'none';
+    input.value = '';
+    document.getElementById('remove-qris-flag').value = '1';
+  }
+  // === END QRIS ===
 
 
 </script>

@@ -21,7 +21,6 @@ class OrderController extends Controller
     {
         $customer = $this->customer();
 
-        // Ambil item yang dipilih (dari keranjang atau langsung)
         if ($request->has('items')) {
             $itemIds   = explode(',', $request->items);
             $cartItems = Cart::whereIn('id', $itemIds)
@@ -58,8 +57,8 @@ class OrderController extends Controller
             'recipient_city.required'    => 'Kota wajib diisi.',
         ]);
 
-        $customer = $this->customer();
-        $cartIds  = explode(',', $request->cart_ids);
+        $customer  = $this->customer();
+        $cartIds   = explode(',', $request->cart_ids);
         $cartItems = Cart::whereIn('id', $cartIds)
                          ->where('customer_id', $customer->id)
                          ->with('product')
@@ -70,7 +69,7 @@ class OrderController extends Controller
         }
 
         $subtotal = $cartItems->sum(fn($i) => $i->product->price * $i->quantity);
-        $total    = $subtotal; // bisa tambah ongkir nanti
+        $total    = $subtotal;
 
         DB::beginTransaction();
         try {
@@ -89,7 +88,6 @@ class OrderController extends Controller
             ]);
 
             foreach ($cartItems as $item) {
-                // Cek stok cukup
                 if ($item->product->stock < $item->quantity) {
                     DB::rollBack();
                     return back()->with('error', 'Stok produk "' . $item->product->name . '" tidak mencukupi. Sisa stok: ' . $item->product->stock)->withInput();
@@ -104,11 +102,9 @@ class OrderController extends Controller
                     'subtotal'      => $item->product->price * $item->quantity,
                 ]);
 
-                // Kurangi stok
                 $item->product->decrement('stock', $item->quantity);
             }
 
-            // Hapus item dari keranjang
             Cart::whereIn('id', $cartIds)->delete();
 
             DB::commit();
@@ -136,22 +132,34 @@ class OrderController extends Controller
 
         $order->load('items.product');
 
-        // Ambil nomor rekening dari setting
-        $bankAccounts = [
+        // Ambil 4 rekening bank dari setting
+        $bankAccounts = array_filter([
             [
-                'bank'    => \App\Models\Setting::get('bank_name_1', 'BCA'),
-                'number'  => \App\Models\Setting::get('bank_number_1', '-'),
-                'name'    => \App\Models\Setting::get('bank_holder_1', 'TuquParcel'),
+                'bank'   => \App\Models\Setting::get('bank_name_1', 'BCA'),
+                'number' => \App\Models\Setting::get('bank_number_1', ''),
+                'name'   => \App\Models\Setting::get('bank_holder_1', 'TuquParcel'),
             ],
             [
-                'bank'    => \App\Models\Setting::get('bank_name_2', ''),
-                'number'  => \App\Models\Setting::get('bank_number_2', ''),
-                'name'    => \App\Models\Setting::get('bank_holder_2', ''),
+                'bank'   => \App\Models\Setting::get('bank_name_2', 'Mandiri'),
+                'number' => \App\Models\Setting::get('bank_number_2', ''),
+                'name'   => \App\Models\Setting::get('bank_holder_2', 'TuquParcel'),
             ],
-        ];
-        $bankAccounts = array_filter($bankAccounts, fn($b) => !empty($b['number']));
+            [
+                'bank'   => \App\Models\Setting::get('bank_name_3', 'Bank Jatim'),
+                'number' => \App\Models\Setting::get('bank_number_3', ''),
+                'name'   => \App\Models\Setting::get('bank_holder_3', 'TuquParcel'),
+            ],
+            [
+                'bank'   => \App\Models\Setting::get('bank_name_4', ''),
+                'number' => \App\Models\Setting::get('bank_number_4', ''),
+                'name'   => \App\Models\Setting::get('bank_holder_4', ''),
+            ],
+        ], fn($b) => !empty($b['number']));
 
-        return view('checkout.payment', compact('order', 'bankAccounts'));
+        // Ambil gambar QRIS dari setting
+        $qrisImage = \App\Models\Setting::get('qris_image', '');
+
+        return view('checkout.payment', compact('order', 'bankAccounts', 'qrisImage'));
     }
 
     // Upload bukti pembayaran
@@ -162,7 +170,8 @@ class OrderController extends Controller
         }
 
         $request->validate([
-            'payment_proof' => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'payment_proof'   => 'required|file|mimes:jpg,jpeg,png,pdf|max:5120',
+            'payment_method'  => 'nullable|in:transfer,qris',
         ], [
             'payment_proof.required' => 'Bukti pembayaran wajib diupload.',
             'payment_proof.mimes'    => 'Format file harus JPG, PNG, atau PDF.',
@@ -172,9 +181,10 @@ class OrderController extends Controller
         $path = $request->file('payment_proof')->store('payment-proofs', 'public');
 
         $order->update([
-            'payment_proof' => $path,
-            'paid_at'       => now(),
-            'status'        => 'paid',
+            'payment_proof'  => $path,
+            'payment_method' => $request->input('payment_method', 'transfer'),
+            'paid_at'        => now(),
+            'status'         => 'paid',
         ]);
 
         return redirect()->route('account.orders')
@@ -190,14 +200,12 @@ class OrderController extends Controller
             abort(403);
         }
 
-        // Hanya boleh cancel jika belum bayar
         if ($order->status !== 'pending') {
             return back()->with('error', 'Pesanan tidak dapat dibatalkan karena sudah diproses.');
         }
 
         DB::beginTransaction();
         try {
-            // Kembalikan stok ke masing-masing produk
             foreach ($order->items as $item) {
                 if ($item->product) {
                     $item->product->increment('stock', $item->quantity);
