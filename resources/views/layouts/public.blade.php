@@ -1152,6 +1152,10 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
               </svg>
               Pesanan Saya
+              @php $__pendingOrders = $__customer->orders()->where('status', 'pending')->count(); @endphp
+              @if($__pendingOrders > 0)
+                <span class="nav-cart-badge">{{ $__pendingOrders }}</span>
+              @endif
             </a>
             <a href="{{ route('cart.index') }}" class="nav-dropdown-item {{ request()->routeIs('cart.index') ? 'active' : '' }}">
               <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -1213,6 +1217,9 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
       </svg>
       Pesanan Saya
+      @if($__pendingOrders > 0)
+        <span style="margin-left:auto;background:var(--gold);color:white;font-size:0.7rem;font-weight:700;padding:1px 8px;border-radius:20px;">{{ $__pendingOrders }}</span>
+      @endif
     </a>
     <a href="{{ route('cart.index') }}" class="mobile-account-item">
       <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
