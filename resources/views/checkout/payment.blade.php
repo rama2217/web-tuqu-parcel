@@ -52,8 +52,13 @@
     to   { opacity:1; transform:translateY(0); }
   }
   .bank-detail-number {
-    font-family:'Cormorant Garamond',serif; font-size:1.7rem; font-weight:700;
-    color:var(--text-dark); letter-spacing:0.04em; margin:4px 0 2px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    letter-spacing: 0.18em;
+    margin: 6px 0 2px;
+    word-spacing: 0.1em;
   }
 
   /* Bank accordion (unused, kept for compat) */
@@ -105,7 +110,7 @@
   {{-- Nominal --}}
   <div style="background:var(--green-dark);color:var(--ivory);border-radius:8px;padding:24px;margin-bottom:20px;text-align:center;">
     <p style="font-size:0.8rem;opacity:0.75;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">Total yang harus dibayar</p>
-    <p style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:700;">Rp {{ number_format($order->total, 0, ',', '.') }}</p>
+    <p style="font-family:'Cormorant Garamond',serif;font-size:2.4rem;font-weight:700;font-variant-numeric:lining-nums;font-feature-settings:'lnum' 1;">Rp {{ number_format($order->total, 0, ',', '.') }}</p>
     <p style="font-size:0.8rem;opacity:0.6;margin-top:4px;">{{ $order->items->count() }} produk • {{ $order->recipient_name }}</p>
   </div>
 
@@ -145,7 +150,7 @@
           <p class="bank-detail-number" id="detailNumber"></p>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px;">
             <p style="font-size:0.85rem;color:var(--text-muted);" id="detailHolder"></p>
-            <button type="button" onclick="copyText(document.getElementById('detailNumber').textContent)"
+            <button type="button" onclick="copyText(document.getElementById('detailNumber').textContent.replace(/\s/g,''))"
               style="background:white;border:1px solid var(--border);border-radius:6px;padding:7px 14px;font-size:0.8rem;font-weight:500;color:var(--green-dark);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;flex-shrink:0;"
               onmouseover="this.style.background='var(--green-light)'" onmouseout="this.style.background='white'">
               Salin
@@ -155,13 +160,16 @@
 
         <script>
           const bankData = {!! $banksJson !!};
+          function formatAccountNumber(num) {
+            return num.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
+          }
           function showBankDetail(select) {
             const card = document.getElementById('bankDetailCard');
             const idx  = select.value;
             if (idx === '') { card.classList.remove('visible'); return; }
             const b = bankData[parseInt(idx)];
             document.getElementById('detailBankName').textContent = b.bank;
-            document.getElementById('detailNumber').textContent   = b.number;
+            document.getElementById('detailNumber').textContent   = formatAccountNumber(b.number);
             document.getElementById('detailHolder').textContent   = 'a.n. ' + b.name;
             card.classList.add('visible');
           }

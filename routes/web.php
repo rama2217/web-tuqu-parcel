@@ -3,6 +3,8 @@
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\Admin\AuthController;
+use App\Http\Controllers\Admin\ForgotPasswordAdminController;
+use App\Http\Controllers\Admin\ResetPasswordAdminController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ReviewController as AdminReviewController;
@@ -78,6 +80,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+        // ── Lupa Password ──────────────────────────────────────────────────────
+    Route::get('/forgot-password',  [ForgotPasswordAdminController::class, 'showLinkRequestForm'])->name('password.request');
+    Route::post('/forgot-password', [ForgotPasswordAdminController::class, 'sendResetLinkEmail'])->name('password.email');
+    // ── Reset Password (link dari email) ───────────────────────────────────
+    Route::get('/reset-password/{token}', [ResetPasswordAdminController::class, 'showResetForm'])->name('password.reset');
+    Route::post('/reset-password', [ResetPasswordAdminController::class, 'reset'])->name('password.update');
+
     // Protected admin routes
     Route::middleware(['auth', 'admin.session'])->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -116,5 +125,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/pesanan/{order}/approve', [OrderApprovalController::class, 'approve'])->name('orders.approve');
         Route::post('/pesanan/{order}/status', [OrderApprovalController::class, 'updateStatus'])->name('orders.update-status');
         Route::get('/pesanan/{order}/bukti', [OrderApprovalController::class, 'viewProof'])->name('orders.view-proof');
+
+
     });
 });

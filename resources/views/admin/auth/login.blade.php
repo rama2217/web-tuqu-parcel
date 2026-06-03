@@ -82,7 +82,7 @@
           </svg>
         </button>
       </div>
-      <div class="forgot-row"><a href="#" class="forgot-link">Forgot password?</a></div>
+      <div class="forgot-row"><a href="{{ route('admin.password.request') }}" class="forgot-link">Lupa password?</a></div>
       <button type="submit" class="btn-login">
         Masuk
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">

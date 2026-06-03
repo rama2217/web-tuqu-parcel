@@ -102,11 +102,19 @@
   .rte-btn:hover { background: #e8f0e8; color: var(--text); }
   .rte-btn svg { width: 14px; height: 14px; }
   .rte-area {
-    width: 100%; min-height: 110px; padding: 12px 14px;
-    border: none; outline: none; resize: none;
+    width: 100%; min-height: 110px; max-height: 400px; padding: 12px 14px;
+    border: none; outline: none; overflow-y: auto;
     font-size: 13.5px; font-family: inherit; color: var(--text);
-    background: var(--card-bg); line-height: 1.6;
+    background: var(--card-bg); line-height: 1.6; box-sizing: border-box;
   }
+  .rte-area:empty::before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    pointer-events: none;
+  }
+  .rte-btn.active { background: #e8f0e8; color: var(--green-accent); }
+  .rte-area ul { padding-left: 20px; margin: 6px 0; }
+  .rte-area a { color: var(--green-accent); text-decoration: underline; }
 
   /* Tags / Isi Parcel */
   .tags-wrap {
@@ -324,7 +332,7 @@
       <!-- Title bar -->
       <div class="title-bar">
         <div class="title-left">
-          <h1>Royal White Lily Bouquet</h1>
+          <h1 id="page-title">{{ $product->name }}</h1>
           <span class="badge-tersedia">Tersedia</span>
         </div>
         <div class="title-right">
@@ -356,31 +364,42 @@
 
             <div class="form-group">
               <label class="form-label">Deskripsi</label>
-              <div class="rte-wrap">
+              <div class="rte-wrap" id="rte-wrap">
                 <div class="rte-toolbar">
-                  <button class="rte-btn" title="Bold"><strong>B</strong></button>
-                  <button class="rte-btn" title="Italic"><em>I</em></button>
-                  <button class="rte-btn" title="List">
+                  <button type="button" class="rte-btn" id="btn-bold" title="Bold" onmousedown="event.preventDefault(); rteCommand('bold')"><strong>B</strong></button>
+                  <button type="button" class="rte-btn" id="btn-italic" title="Italic" onmousedown="event.preventDefault(); rteCommand('italic')"><em>I</em></button>
+                  <button type="button" class="rte-btn" id="btn-list" title="Bullet List" onmousedown="event.preventDefault(); rteCommand('insertUnorderedList')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
                   </button>
-                  <button class="rte-btn" title="Link">
+                  <button type="button" class="rte-btn" id="btn-link" title="Insert Link" onmousedown="event.preventDefault(); rteInsertLink()">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                   </button>
                 </div>
-                <textarea class="rte-area" name="description" placeholder="Tulis deskripsi produk...">{{ old('description', $product->description) }}</textarea>
+                {{-- contenteditable div sebagai editor --}}
+                <div
+                  class="rte-area"
+                  id="rte-editor"
+                  contenteditable="true"
+                  data-placeholder="Tulis deskripsi produk..."
+                >{{ old('description', $product->description) }}</div>
+                {{-- hidden input yang dikirim ke server --}}
+                <input type="hidden" name="description" id="rte-hidden">
               </div>
             </div>
 
             <div class="form-group">
               <label class="form-label">Isi Parcel</label>
-              <div class="tags-wrap">
-                <div class="tags-list" id="parcel-tags">
-                  <span class="tag-item">5x White Lily <span class="tag-remove" onclick="removeTag(this)">×</span></span>
-                  <span class="tag-item">3x Eucalyptus <span class="tag-remove" onclick="removeTag(this)">×</span></span>
-                  <span class="tag-item">1x Premium Vase <span class="tag-remove" onclick="removeTag(this)">×</span></span>
-                </div>
-                <input class="tag-input" type="text" placeholder="Tambahkan item (tekan enter)" onkeydown="addTag(event, 'parcel-tags', this)">
+              <div class="tags-wrap" id="parcel-wrap">
+                @foreach($product->contents as $content)
+                  <span class="tag-item" data-tag-id="existing-{{ $content->id }}">
+                    {{ $content->item }}
+                    <span class="tag-remove" onclick="removeTag(this)">×</span>
+                    <input type="hidden" name="contents[]" value="{{ $content->item }}" id="hidden-existing-{{ $content->id }}">
+                  </span>
+                @endforeach
+                <input class="tag-input" type="text" placeholder="Tambahkan item (tekan enter)" onkeydown="addTag(event, this)">
               </div>
+              <div id="parcel-hidden"></div>
             </div>
           </div>
 
@@ -524,29 +543,57 @@
 
 @push('scripts')
 <script>
-  // Tag input (Isi Parcel)
-  function addTag(e, listId, input) {
-    if (e.key !== 'Enter') return;
-    e.preventDefault();
-    const val = input.value.trim();
-    if (!val) return;
-    const list = document.getElementById(listId);
-    const tag = document.createElement('span');
-    tag.className = 'tag-item';
-    tag.innerHTML = val + ' <span class="tag-remove" onclick="removeTag(this)">×</span>';
-    list.appendChild(tag);
-    input.value = '';
-  }
-  function removeTag(el) {
-    el.parentElement.remove();
+  // Live title update saat nama produk diketik
+  document.querySelector('input[name="name"]').addEventListener('input', function() {
+    document.getElementById('page-title').textContent = this.value || 'Edit Produk';
+  });
+
+  // ===== RICH TEXT EDITOR =====
+  const rteEditor = document.getElementById('rte-editor');
+  const rteHidden = document.getElementById('rte-hidden');
+
+  // Init: sinkronisasi konten awal ke hidden input
+  rteHidden.value = rteEditor.innerHTML;
+
+  // Sinkronisasi editor → hidden input setiap kali isi berubah
+  rteEditor.addEventListener('input', function() {
+    rteHidden.value = rteEditor.innerHTML;
+    updateToolbarState();
+  });
+
+  // Sync juga saat form di-submit (safety net)
+  document.getElementById('edit-produk-form').addEventListener('submit', function() {
+    rteHidden.value = rteEditor.innerHTML;
+  });
+
+  // Eksekusi perintah formatting
+  function rteCommand(cmd) {
+    rteEditor.focus();
+    document.execCommand(cmd, false, null);
+    rteHidden.value = rteEditor.innerHTML;
+    updateToolbarState();
   }
 
-  // Simple tag input (Tags)
-  function addTagSimple(e, input) {
-    if (e.key !== 'Enter') return;
-    e.preventDefault();
-    input.value = '';
+  // Insert link
+  function rteInsertLink() {
+    const url = prompt('Masukkan URL link:');
+    if (url) {
+      rteEditor.focus();
+      document.execCommand('createLink', false, url);
+      rteEditor.querySelectorAll('a:not([target])').forEach(a => a.setAttribute('target', '_blank'));
+      rteHidden.value = rteEditor.innerHTML;
+    }
   }
+
+  // Update active state tombol toolbar sesuai posisi kursor
+  function updateToolbarState() {
+    document.getElementById('btn-bold').classList.toggle('active', document.queryCommandState('bold'));
+    document.getElementById('btn-italic').classList.toggle('active', document.queryCommandState('italic'));
+    document.getElementById('btn-list').classList.toggle('active', document.queryCommandState('insertUnorderedList'));
+  }
+
+  rteEditor.addEventListener('keyup', updateToolbarState);
+  rteEditor.addEventListener('mouseup', updateToolbarState);
 
   // Toggle sub text
   function updateToggleSub(cb, subId, onText, offText) {

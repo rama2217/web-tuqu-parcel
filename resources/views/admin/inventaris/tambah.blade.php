@@ -79,7 +79,7 @@
   .form-input::placeholder { color: #b0bdb5; }
 
   textarea.form-input {
-    resize: vertical; min-height: 110px; line-height: 1.6;
+    resize: vertical; min-height: 110px; max-height: 400px; line-height: 1.6; overflow-y: auto;
   }
 
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -356,9 +356,9 @@
               <div class="form-group">
                 <label class="form-label">Isi Parcel</label>
                 <div class="tags-wrap" id="parcel-wrap" onclick="focusTagInput()">
-                  <div id="parcel-hidden"></div>
                   <input class="tag-input" type="text" id="tag-input-field" placeholder="+ Tambah item lalu tekan Enter" onkeydown="addTag(event, this)">
                 </div>
+                <div id="parcel-hidden"></div>
               </div>
             </div>
           </div>
@@ -492,6 +492,16 @@
 
 @push('scripts')
 <script>
+  // ===== AUTO-RESIZE TEXTAREA =====
+  document.querySelectorAll('textarea.form-input').forEach(function(ta) {
+    function resize() {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 400) + 'px';
+    }
+    ta.addEventListener('input', resize);
+    resize();
+  });
+
   // ===== ISI PARCEL TAGS =====
   function focusTagInput() {
     document.getElementById('tag-input-field').focus();

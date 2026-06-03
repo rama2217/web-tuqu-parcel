@@ -38,11 +38,23 @@ class SettingController extends Controller
             'bank_name_3', 'bank_number_3', 'bank_holder_3',
             // Bank 4 – opsional
             'bank_name_4', 'bank_number_4', 'bank_holder_4',
-            'admin_auto_logout', 'admin_session_timeout', 'admin_2fa', 'admin_login_notification',
+            'admin_auto_logout', 'admin_session_timeout', 'admin_login_notification',
+            'notif_low_stock', 'notif_new_review', 'notif_weekly_report',
+        ];
+
+        // Daftar key yang bertipe checkbox (nilai: '1' atau '0')
+        $checkboxKeys = [
+            'admin_auto_logout', 'admin_login_notification',
+            'notif_low_stock', 'notif_new_review', 'notif_weekly_report',
         ];
 
         foreach ($allowed as $key) {
-            Setting::set($key, (string) $request->input($key, ''));
+            if (in_array($key, $checkboxKeys)) {
+                // Checkbox tidak terkirim saat tidak dicentang → simpan '0'
+                Setting::set($key, $request->has($key) ? '1' : '0');
+            } else {
+                Setting::set($key, (string) $request->input($key, ''));
+            }
         }
 
         // Simpan label & link occasion (1-12)

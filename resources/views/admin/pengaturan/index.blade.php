@@ -810,11 +810,13 @@
 
       <!-- NOTIFIKASI -->
       <div class="tab-panel" id="tab-notifikasi">
+        <form method="POST" action="{{ route('admin.pengaturan.update') }}" id="form-notifikasi">
+          @csrf @method('PUT')
         <div class="settings-card">
           <div class="section-heading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>Preferensi Notifikasi</div>
-          <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Stok Hampir Habis</div><div class="toggle-sub">Notifikasi ketika stok produk di bawah batas minimum</div></div><label class="switch"><input type="checkbox" checked><span class="switch-track"></span></label></div>
-          <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Review Baru</div><div class="toggle-sub">Notifikasi ketika ada ulasan baru dari pelanggan</div></div><label class="switch"><input type="checkbox"><span class="switch-track"></span></label></div>
-          <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Laporan Mingguan</div><div class="toggle-sub">Kirim ringkasan performa toko setiap Senin pagi</div></div><label class="switch"><input type="checkbox" checked><span class="switch-track"></span></label></div>
+          <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Stok Hampir Habis</div><div class="toggle-sub">Notifikasi ketika stok produk di bawah batas minimum</div></div><label class="switch"><input type="checkbox" name="notif_low_stock" value="1" {{ ($settings['notif_low_stock'] ?? '1') == '1' ? 'checked' : '' }}><span class="switch-track"></span></label></div>
+          <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Review Baru</div><div class="toggle-sub">Notifikasi ketika ada ulasan baru dari pelanggan</div></div><label class="switch"><input type="checkbox" name="notif_new_review" value="1" {{ ($settings['notif_new_review'] ?? '1') == '1' ? 'checked' : '' }}><span class="switch-track"></span></label></div>
+          <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Laporan Mingguan</div><div class="toggle-sub">Kirim ringkasan performa toko setiap Senin pagi</div></div><label class="switch"><input type="checkbox" name="notif_weekly_report" value="1" {{ ($settings['notif_weekly_report'] ?? '') == '1' ? 'checked' : '' }}><span class="switch-track"></span></label></div>
         </div>
         <div class="settings-card">
           <div class="section-heading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Email Notifikasi</div>
@@ -822,7 +824,7 @@
             <label class="form-label">Email Penerima Notifikasi</label>
             <div class="input-icon-wrap">
               <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-              <input type="email" class="form-input" name="admin_email" form="form-branding"
+              <input type="email" class="form-input" name="admin_email"
                 value="{{ old('admin_email', $settings['admin_email'] ?? '') }}"
                 placeholder="admin@gmail.com">
             </div>
@@ -830,10 +832,17 @@
           </div>
           <div class="form-group">
             <label class="form-label">Batas Minimum Stok</label>
-            <input type="number" class="form-input" name="low_stock_threshold" form="form-branding" value="{{ $settings['low_stock_threshold'] ?? 10 }}" min="1" style="max-width:200px;">
+            <input type="number" class="form-input" name="low_stock_threshold" value="{{ $settings['low_stock_threshold'] ?? 10 }}" min="1" style="max-width:200px;">
             <div class="form-hint">Notifikasi akan dikirim jika stok produk di bawah angka ini.</div>
           </div>
         </div>
+        <div style="display:flex;justify-content:flex-end;padding:14px 0;">
+          <button type="submit" class="btn-save">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+            Simpan Notifikasi
+          </button>
+        </div>
+        </form>
       </div>
 
       <!-- KEAMANAN -->
@@ -854,13 +863,21 @@
           </button>
         </div>
         </form>
-        <div class="settings-card">
-<form method="POST" action="{{ route('admin.pengaturan.update') }}" id="form-keamanan">@csrf          <div class="section-heading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Keamanan Login</div>
-          <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Two-Factor Authentication (2FA)</div><div class="toggle-sub">Tambahan keamanan dengan kode verifikasi saat login</div></div><label class="switch"><input type="checkbox" name="admin_2fa" value="1" {{ ($settings['admin_2fa'] ?? '') == '1' ? 'checked' : '' }}><span class="switch-track"></span></label></div>
-          <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Login Notification</div><div class="toggle-sub">Kirim email saat ada login baru ke akun ini</div></div><label class="switch"><input type="checkbox" name="admin_login_notification" value="1" {{ ($settings['admin_login_notification'] ?? '1') == '1' ? 'checked' : '' }}><span class="switch-track"></span></label></div>
-          <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Auto Logout</div><div class="toggle-sub">Keluar otomatis setelah 30 menit tidak aktif</div></div><label class="switch"><input type="checkbox" name="admin_auto_logout" value="1" {{ ($settings['admin_auto_logout'] ?? '1') == '1' ? 'checked' : '' }}><span class="switch-track"></span></label></div>
-        </div>
-      </div></form>
+        <form method="POST" action="{{ route('admin.pengaturan.update') }}" id="form-keamanan">
+          @csrf @method('PUT')
+          <div class="settings-card">
+            <div class="section-heading"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Keamanan Login</div>
+            <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Login Notification</div><div class="toggle-sub">Kirim email saat ada login baru ke akun ini</div></div><label class="switch"><input type="checkbox" name="admin_login_notification" value="1" {{ ($settings['admin_login_notification'] ?? '1') == '1' ? 'checked' : '' }}><span class="switch-track"></span></label></div>
+            <div class="toggle-row"><div class="toggle-info"><div class="toggle-label">Auto Logout</div><div class="toggle-sub">Keluar otomatis setelah 30 menit tidak aktif</div></div><label class="switch"><input type="checkbox" name="admin_auto_logout" value="1" {{ ($settings['admin_auto_logout'] ?? '1') == '1' ? 'checked' : '' }}><span class="switch-track"></span></label></div>
+            <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+              <button type="submit" class="btn-save">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+                Simpan Keamanan
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
 
     </div>
   </div>
